@@ -52,17 +52,7 @@ class Filters extends BaseFilters
      * List of filter aliases that are always
      * applied before and after every request.
      */
-    public array $globals = [
-        'before' => [
-            // Terapkan filter 'auth' di sini agar setiap request dicek apakah sudah login
-            'auth' => ['except' => ['login', 'loginProcess', 'register', 'registerProcess']], // Kecualikan halaman login dan register
-        ],
-        'after' => [
-            // 'honeypot',
-            // 'secureheaders',
-        ],
-    ];
-
+   
     /**
      * List of filter aliases that works on a
      * particular HTTP method (GET, POST, etc.).

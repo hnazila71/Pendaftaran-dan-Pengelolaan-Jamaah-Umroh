@@ -7,19 +7,11 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // Rute Autentikasi - Login, Logout, Register
-$routes->group('', function ($routes) {
-    $routes->get('login', 'AuthController::login');                    // Halaman login
-    $routes->post('login', 'AuthController::loginProcess');            // Proses login
-    $routes->get('logout', 'AuthController::logout');                  // Logout
-    $routes->get('register', 'AuthController::register');              // Halaman register
-    $routes->post('register-process', 'AuthController::registerProcess'); // Proses register
-});
 
-// Rute Utama - Mengarahkan root URL ke login jika belum login
-$routes->get('/', 'AuthController::login'); // Arahkan ke login saat pertama kali diakses
+
 
 // Rute Dashboard dan Lainnya - Hanya dapat diakses jika sudah login
-$routes->group('', ['filter' => 'auth'], function ($routes) {
+
     // Dashboard sebagai halaman utama setelah login
     $routes->get('dashboard', 'DashboardController::index');           // Halaman dashboard utama
     $routes->get('dashboard/add-jamaah', 'JamaahController::addJamaah');    // Form tambah jamaah
@@ -47,4 +39,3 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // Rute untuk keuangan
     $routes->get('keuangan', 'KeuanganController::index');
-});
