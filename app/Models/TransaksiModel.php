@@ -16,8 +16,10 @@ class TransaksiModel extends Model
         'dp1',
         'dp2',
         'dp3',
+        'kekurangan',
         'dp1_time_edit',
         'dp2_time_edit',
-        'dp3_time_edit'
+        'dp3_time_edit',
+        'harga_modal' // Kolom baru ditambahkan di sini
     ];
 }

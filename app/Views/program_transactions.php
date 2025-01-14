@@ -82,6 +82,10 @@
         .back-link:hover {
             text-decoration: underline;
         }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
     </style>
 </head>
 
@@ -100,53 +104,57 @@
     <div class="transactions">
         <h2>Daftar Transaksi untuk Program Ini</h2>
         <?php if (!empty($transaksi)): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nama Jamaah</th>
-                        <th>Harga</th>
-                        <th>DP 1</th>
-                        <th>Waktu Edit DP 1</th>
-                        <th>DP 2</th>
-                        <th>Waktu Edit DP 2</th>
-                        <th>DP 3</th>
-                        <th>Waktu Edit DP 3</th>
-                        <th>Kekurangan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($transaksi as $t): ?>
+            <div class="table-responsive">
+                <table>
+                    <thead>
                         <tr>
-                            <td><?= esc($t['nama_jamaah']) ?></td>
-                            <td><?= number_format($t['harga'], 0, '.', ',') ?></td>
-
-                            <!-- DP1 dan waktu editnya -->
-                            <td>
-                                <?= number_format($t['dp1'], 0, '.', ',') ?><br>
-                                <a href="<?= site_url('dashboard/edit-dp1/' . $t['id']) ?>" class="edit-button">Edit DP1</a>
-                            </td>
-                            <td><?= esc($t['dp1_time_edit'] ?? '-') ?></td>
-
-                            <!-- DP2 dan waktu editnya -->
-                            <td>
-                                <?= number_format($t['dp2'], 0, '.', ',') ?><br>
-                                <a href="<?= site_url('dashboard/edit-dp2/' . $t['id']) ?>" class="edit-button">Edit DP2</a>
-                            </td>
-                            <td><?= esc($t['dp2_time_edit'] ?? '-') ?></td>
-
-                            <!-- DP3 dan waktu editnya -->
-                            <td>
-                                <?= number_format($t['dp3'], 0, '.', ',') ?><br>
-                                <a href="<?= site_url('dashboard/edit-dp3/' . $t['id']) ?>" class="edit-button">Edit DP3</a>
-                            </td>
-                            <td><?= esc($t['dp3_time_edit'] ?? '-') ?></td>
-
-                            <!-- Kekurangan -->
-                            <td><?= number_format($t['kekurangan'], 0, '.', ',') ?></td>
+                            <th>Nama Jamaah</th>
+                            <th>Harga</th>
+                            <th>Harga Modal</th>
+                            <th>DP 1</th>
+                            <th>Waktu Edit DP 1</th>
+                            <th>DP 2</th>
+                            <th>Waktu Edit DP 2</th>
+                            <th>DP 3</th>
+                            <th>Waktu Edit DP 3</th>
+                            <th>Total Pembayaran</th>
+                            <th>Kekurangan</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $totalKekurangan = 0;
+                        foreach ($transaksi as $t): 
+                            $totalPembayaran = $t['dp1'] + $t['dp2'] + $t['dp3'];
+                            $totalKekurangan += $t['kekurangan'];
+                        ?>
+                            <tr>
+                                <td><?= esc($t['nama_jamaah']) ?></td>
+                                <td>Rp <?= number_format($t['harga'], 0, ',', '.') ?></td>
+                                <td>Rp <?= number_format($t['harga_modal'], 0, ',', '.') ?></td>
+                                <td>
+                                    Rp <?= number_format($t['dp1'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp1/' . $t['id']) ?>" class="edit-button">Edit DP1</a>
+                                </td>
+                                <td><?= esc($t['dp1_time_edit'] ?? '-') ?></td>
+                                <td>
+                                    Rp <?= number_format($t['dp2'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp2/' . $t['id']) ?>" class="edit-button">Edit DP2</a>
+                                </td>
+                                <td><?= esc($t['dp2_time_edit'] ?? '-') ?></td>
+                                <td>
+                                    Rp <?= number_format($t['dp3'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp3/' . $t['id']) ?>" class="edit-button">Edit DP3</a>
+                                </td>
+                                <td><?= esc($t['dp3_time_edit'] ?? '-') ?></td>
+                                <td>Rp <?= number_format($totalPembayaran, 0, ',', '.') ?></td>
+                                <td>Rp <?= number_format($t['kekurangan'], 0, ',', '.') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p><strong>Total Kekurangan: Rp <?= number_format($totalKekurangan, 0, ',', '.') ?></strong></p>
         <?php else: ?>
             <p>Tidak ada transaksi untuk program ini.</p>
         <?php endif; ?>

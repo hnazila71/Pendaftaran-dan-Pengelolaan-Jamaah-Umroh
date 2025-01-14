@@ -30,6 +30,7 @@ class TransaksiController extends Controller
             'dp1' => 'required|decimal',
             'dp2' => 'required|decimal',
             'dp3' => 'required|decimal',
+            'harga_modal' => 'required|decimal' // Validasi harga_modal
         ])) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
@@ -39,6 +40,7 @@ class TransaksiController extends Controller
         $dp1 = $this->request->getPost('dp1');
         $dp2 = $this->request->getPost('dp2');
         $dp3 = $this->request->getPost('dp3');
+        $hargaModal = $this->request->getPost('harga_modal'); // Ambil harga_modal
 
         // Hitung kekurangan
         $kekurangan = $harga - $dp1 - $dp2 - $dp3;
@@ -52,7 +54,8 @@ class TransaksiController extends Controller
             'dp1' => $dp1,
             'dp2' => $dp2,
             'dp3' => $dp3,
-            'kekurangan' => $kekurangan, // Tidak perlu disimpan karena disimpan sebagai kolom computed
+            'kekurangan' => $kekurangan,
+            'harga_modal' => $hargaModal // Simpan harga_modal
         ]);
 
         // Redirect ke dashboard dengan pesan sukses
