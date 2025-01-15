@@ -1,33 +1,51 @@
 <?php
 
 namespace App\Controllers;
-
-use App\Models\TransaksiModel;
 use CodeIgniter\Controller;
+use App\Models\PengeluaranModel;
 
 class KeuanganController extends Controller
 {
-    protected $transaksiModel;
-
-    public function __construct()
-    {
-        $this->transaksiModel = new TransaksiModel();
-    }
-
     public function index()
     {
-        // Ambil total harga dan total kekurangan dari tabel transaksi
-        $totalHarga = $this->transaksiModel->selectSum('harga')->get()->getRow()->harga;
-        $totalKekurangan = $this->transaksiModel->selectSum('kekurangan')->get()->getRow()->kekurangan;
+        $pengeluaranModel = new PengeluaranModel();
+        $data['pengeluaran'] = $pengeluaranModel->findAll(); // Ambil semua data pengeluaran
 
-        // Hitung pemasukan sebagai total harga dikurangi total kekurangan
-        $pemasukan = $totalHarga - $totalKekurangan;
+        // Hitung total pengeluaran
+        $total = 0;
+        foreach ($data['pengeluaran'] as $item) {
+            $total += $item['jumlah'];
+        }
+        $data['total'] = $total; // Simpan total pengeluaran
 
-        // Kirim data ke view
-        return view('keuangan', [
-            'totalHarga' => $totalHarga,
-            'totalKekurangan' => $totalKekurangan,
-            'pemasukan' => $pemasukan,
-        ]);
+        return view('keuangan/index', $data);
+    }
+
+    public function save()
+    {
+        $pengeluaranModel = new PengeluaranModel();
+
+        // Validasi input
+        if ($this->validate([
+            'keterangan' => 'required',
+            'jumlah' => 'required|numeric',
+        ])) {
+            // Ambil tanggal hari ini secara otomatis
+            $tanggal = date('Y-m-d');
+
+            // Simpan data pengeluaran
+            $data = [
+                'tanggal' => $tanggal,
+                'keterangan' => $this->request->getPost('keterangan'),
+                'jumlah' => $this->request->getPost('jumlah'),
+            ];
+            $pengeluaranModel->save($data);
+
+            // Redirect ke halaman pengeluaran setelah disimpan
+            return redirect()->to('/keuangan');
+        } else {
+            // Jika validasi gagal, kembali ke form tambah dengan pesan error
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
     }
 }

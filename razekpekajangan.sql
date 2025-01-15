@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Waktu pembuatan: 14 Nov 2024 pada 03.03
--- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.2.12
+-- Host: localhost
+-- Generation Time: Jan 15, 2025 at 12:19 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `admins`
+-- Table structure for table `admins`
 --
 
 CREATE TABLE `admins` (
@@ -33,18 +33,10 @@ CREATE TABLE `admins` (
   `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data untuk tabel `admins`
---
-
-INSERT INTO `admins` (`id`, `nama`, `password`) VALUES
-(1, 'admin1', '$2y$10$.WeIuADFwiZ42/OtsSqlG.3N.aBS5mEB5J/N8AP30FKd1wrfozofW'),
-(2, 'admin2', '$2y$10$Jlcabvas.Ey6EwnOSh7efeEKnXU2ZWXBuckGWaQQviBrlK0mJb73C');
-
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `jamaah`
+-- Table structure for table `jamaah`
 --
 
 CREATE TABLE `jamaah` (
@@ -52,19 +44,26 @@ CREATE TABLE `jamaah` (
   `nama_jamaah` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data untuk tabel `jamaah`
+-- Table structure for table `pengeluaran`
 --
 
-INSERT INTO `jamaah` (`id`, `nama_jamaah`) VALUES
-(1, 'Jamaah Tes 1'),
-(2, 'Jamaah Tes 2'),
-(3, 'Jamaah Contoh');
+CREATE TABLE `pengeluaran` (
+  `id` int(11) NOT NULL,
+  `tanggal` date NOT NULL,
+  `keterangan` varchar(255) NOT NULL,
+  `jumlah` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `update_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `program`
+-- Table structure for table `program`
 --
 
 CREATE TABLE `program` (
@@ -73,19 +72,22 @@ CREATE TABLE `program` (
   `tanggal_program` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data untuk tabel `program`
+-- Table structure for table `program_jamaah`
 --
 
-INSERT INTO `program` (`id`, `nama_program`, `tanggal_program`) VALUES
-(1, 'Tes Program 1', '2024-11-05'),
-(2, 'Tes Program 2', '2024-11-14'),
-(3, 'Program Contoh', '2024-12-01');
+CREATE TABLE `program_jamaah` (
+  `id` int(11) NOT NULL,
+  `jamaah_id` int(11) NOT NULL,
+  `program_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `transaksi`
+-- Table structure for table `transaksi`
 --
 
 CREATE TABLE `transaksi` (
@@ -99,42 +101,48 @@ CREATE TABLE `transaksi` (
   `kekurangan` decimal(10,2) GENERATED ALWAYS AS (`harga` - `dp1` - `dp2` - `dp3`) STORED,
   `dp1_time_edit` timestamp NULL DEFAULT NULL,
   `dp2_time_edit` timestamp NULL DEFAULT NULL,
-  `dp3_time_edit` timestamp NULL DEFAULT NULL
+  `dp3_time_edit` timestamp NULL DEFAULT NULL,
+  `harga_modal` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `transaksi`
---
-
-INSERT INTO `transaksi` (`id`, `id_jamaah`, `id_program`, `harga`, `dp1`, `dp2`, `dp3`, `dp1_time_edit`, `dp2_time_edit`, `dp3_time_edit`) VALUES
-(1, 1, 1, 500000.00, 200000.00, 100000.00, 50000.00, '2024-11-06 01:15:07', NULL, NULL),
-(2, 2, 2, 1000000.00, 300000.00, 200000.00, 100000.00, NULL, '2024-11-06 01:40:59', NULL),
-(3, 3, 3, 750000.00, 250000.00, 0.00, 200000.00, '2024-11-06 01:15:07', '2024-11-06 01:40:59', '2024-11-06 01:15:28');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indeks untuk tabel `admins`
+-- Indexes for table `admins`
 --
 ALTER TABLE `admins`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `jamaah`
+-- Indexes for table `jamaah`
 --
 ALTER TABLE `jamaah`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `program`
+-- Indexes for table `pengeluaran`
+--
+ALTER TABLE `pengeluaran`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `program`
 --
 ALTER TABLE `program`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `transaksi`
+-- Indexes for table `program_jamaah`
+--
+ALTER TABLE `program_jamaah`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `jamaah_id` (`jamaah_id`),
+  ADD KEY `program_id` (`program_id`);
+
+--
+-- Indexes for table `transaksi`
 --
 ALTER TABLE `transaksi`
   ADD PRIMARY KEY (`id`),
@@ -142,39 +150,58 @@ ALTER TABLE `transaksi`
   ADD KEY `id_program` (`id_program`);
 
 --
--- AUTO_INCREMENT untuk tabel yang dibuang
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT untuk tabel `admins`
+-- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `jamaah`
+-- AUTO_INCREMENT for table `jamaah`
 --
 ALTER TABLE `jamaah`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `program`
+-- AUTO_INCREMENT for table `pengeluaran`
+--
+ALTER TABLE `pengeluaran`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `program`
 --
 ALTER TABLE `program`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `transaksi`
+-- AUTO_INCREMENT for table `program_jamaah`
+--
+ALTER TABLE `program_jamaah`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `transaksi`
 --
 ALTER TABLE `transaksi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+-- Constraints for dumped tables
 --
 
 --
--- Ketidakleluasaan untuk tabel `transaksi`
+-- Constraints for table `program_jamaah`
+--
+ALTER TABLE `program_jamaah`
+  ADD CONSTRAINT `program_jamaah_ibfk_1` FOREIGN KEY (`jamaah_id`) REFERENCES `jamaah` (`id`),
+  ADD CONSTRAINT `program_jamaah_ibfk_2` FOREIGN KEY (`program_id`) REFERENCES `program` (`id`);
+
+--
+-- Constraints for table `transaksi`
 --
 ALTER TABLE `transaksi`
   ADD CONSTRAINT `transaksi_ibfk_1` FOREIGN KEY (`id_jamaah`) REFERENCES `jamaah` (`id`),

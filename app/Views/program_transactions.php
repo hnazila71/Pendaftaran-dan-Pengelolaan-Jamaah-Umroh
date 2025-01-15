@@ -130,25 +130,25 @@
                         ?>
                             <tr>
                                 <td><?= esc($t['nama_jamaah']) ?></td>
-                                <td>Rp <?= number_format($t['harga'], 0, ',', '.') ?></td>
-                                <td>Rp <?= number_format($t['harga_modal'], 0, ',', '.') ?></td>
+                                <td> <?= number_format($t['harga'], 0, ',', '.') ?></td>
+                                <td> <?= number_format($t['harga_modal'], 0, ',', '.') ?></td>
                                 <td>
-                                    Rp <?= number_format($t['dp1'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp1/' . $t['id']) ?>" class="edit-button">Edit DP1</a>
+                                     <?= number_format($t['dp1'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp1/' . $t['id']) ?>" class="edit-button">Edit </a>
                                 </td>
                                 <td><?= esc($t['dp1_time_edit'] ?? '-') ?></td>
                                 <td>
-                                    Rp <?= number_format($t['dp2'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp2/' . $t['id']) ?>" class="edit-button">Edit DP2</a>
+                                     <?= number_format($t['dp2'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp2/' . $t['id']) ?>" class="edit-button">Edit </a>
                                 </td>
                                 <td><?= esc($t['dp2_time_edit'] ?? '-') ?></td>
                                 <td>
-                                    Rp <?= number_format($t['dp3'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp3/' . $t['id']) ?>" class="edit-button">Edit DP3</a>
+                                     <?= number_format($t['dp3'], 0, ',', '.') ?><br>
+                                    <a href="<?= site_url('dashboard/edit-dp3/' . $t['id']) ?>" class="edit-button">Edit </a>
                                 </td>
                                 <td><?= esc($t['dp3_time_edit'] ?? '-') ?></td>
-                                <td>Rp <?= number_format($totalPembayaran, 0, ',', '.') ?></td>
-                                <td>Rp <?= number_format($t['kekurangan'], 0, ',', '.') ?></td>
+                                <td> <?= number_format($totalPembayaran, 0, ',', '.') ?></td>
+                                <td> <?= number_format($t['kekurangan'], 0, ',', '.') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

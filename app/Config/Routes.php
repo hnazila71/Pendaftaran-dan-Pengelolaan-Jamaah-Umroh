@@ -37,5 +37,8 @@ use CodeIgniter\Router\RouteCollection;
     $routes->get('dashboard/edit-dp3/(:num)', 'DashboardController::editDP3/$1');
     $routes->post('dashboard/update-dp/(:num)', 'DashboardController::updateDP/$1');
 
-    // Rute untuk keuangan
-    $routes->get('keuangan', 'KeuanganController::index');
+    $routes->get('/keuangan', 'KeuanganController::index'); // Menampilkan daftar pengeluaran
+
+    $routes->get('keuangan', 'KeuanganController::index');  // Menampilkan halaman pengeluaran
+    $routes->post('keuangan/save', 'KeuanganController::simpan');  // Menyimpan pengeluaran
+    
