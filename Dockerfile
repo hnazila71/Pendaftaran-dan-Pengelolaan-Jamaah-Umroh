@@ -33,7 +33,7 @@ COPY . .
 
 RUN mkdir -p writable/cache writable/logs writable/session \
     && chown -R www-data:www-data writable \
-    && chmod -R 775 writable
+    && chmod -R 777 writable
 
 COPY docker/render-start.sh /usr/local/bin/render-start.sh
 RUN chmod +x /usr/local/bin/render-start.sh
