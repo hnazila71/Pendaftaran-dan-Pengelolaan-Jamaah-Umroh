@@ -45,9 +45,16 @@ class AuthController extends Controller
             $adminCount = $adminModel->countAll();
         } catch (Throwable $e) {
             log_message('error', 'Login database error: {message}', ['message' => $e->getMessage()]);
+
+            $message = 'Koneksi database bermasalah. Pastikan env `DATABASE_URL` di Render valid dan schema Neon sudah di-import.';
+            $lowerError = strtolower($e->getMessage());
+            if (str_contains($lowerError, 'relation') && str_contains($lowerError, 'admins')) {
+                $message = 'Tabel `admins` belum ada di Neon. Jalankan file neon_postgres_schema.sql lalu coba lagi.';
+            }
+
             return redirect()->back()->withInput()->with(
                 'msg',
-                'Koneksi database bermasalah. Pastikan env `DATABASE_URL` di Render valid dan schema Neon sudah di-import.'
+                $message
             );
         }
 
@@ -118,11 +125,34 @@ class AuthController extends Controller
 
     public function loginGoogle()
     {
-        $clientId = trim((string) env('google.clientId'));
-        $redirectUri = trim((string) env('google.redirectUri'));
+        $clientId = trim((string) $this->readEnv([
+            'google.clientId',
+            'google_clientId',
+            'GOOGLE_CLIENT_ID',
+        ], ''));
+        $clientSecret = trim((string) $this->readEnv([
+            'google.clientSecret',
+            'google_clientSecret',
+            'GOOGLE_CLIENT_SECRET',
+        ], ''));
+        $redirectUri = $this->resolveGoogleRedirectUri();
 
-        if ($clientId === '' || $redirectUri === '') {
-            return redirect()->to('/login')->with('msg', 'Google Login belum dikonfigurasi di Environment Variables (Render).');
+        $missing = [];
+        if ($clientId === '') {
+            $missing[] = 'GOOGLE_CLIENT_ID';
+        }
+        if ($clientSecret === '') {
+            $missing[] = 'GOOGLE_CLIENT_SECRET';
+        }
+        if ($redirectUri === '') {
+            $missing[] = 'GOOGLE_REDIRECT_URI / APP_BASE_URL';
+        }
+
+        if ($missing !== []) {
+            return redirect()->to('/login')->with(
+                'msg',
+                'Google Login belum lengkap. Isi env: ' . implode(', ', $missing)
+            );
         }
 
         try {
@@ -328,11 +358,20 @@ class AuthController extends Controller
 
     private function exchangeGoogleCode(string $code): ?array
     {
-        $clientId = trim((string) env('google.clientId'));
-        $clientSecret = trim((string) env('google.clientSecret'));
-        $redirectUri = trim((string) env('google.redirectUri'));
+        $clientId = trim((string) $this->readEnv([
+            'google.clientId',
+            'google_clientId',
+            'GOOGLE_CLIENT_ID',
+        ], ''));
+        $clientSecret = trim((string) $this->readEnv([
+            'google.clientSecret',
+            'google_clientSecret',
+            'GOOGLE_CLIENT_SECRET',
+        ], ''));
+        $redirectUri = $this->resolveGoogleRedirectUri();
 
         if ($clientId === '' || $clientSecret === '' || $redirectUri === '') {
+            log_message('error', 'Google OAuth env incomplete for token exchange.');
             return null;
         }
 
@@ -419,5 +458,56 @@ class AuthController extends Controller
 
         $text = strtolower(trim((string) $value));
         return in_array($text, ['1', 't', 'true', 'yes', 'y'], true);
+    }
+
+    private function resolveGoogleRedirectUri(): string
+    {
+        $redirectUri = trim((string) $this->readEnv([
+            'google.redirectUri',
+            'google_redirectUri',
+            'GOOGLE_REDIRECT_URI',
+        ], ''));
+
+        if ($redirectUri !== '') {
+            return $redirectUri;
+        }
+
+        $baseURL = trim((string) $this->readEnv([
+            'APP_BASE_URL',
+            'app.baseURL',
+            'app_baseURL',
+            'RENDER_EXTERNAL_URL',
+        ], ''));
+
+        if ($baseURL === '') {
+            $appConfig = config('App');
+            if (is_object($appConfig) && isset($appConfig->baseURL)) {
+                $baseURL = trim((string) $appConfig->baseURL);
+            }
+        }
+
+        if ($baseURL === '') {
+            return '';
+        }
+
+        return rtrim($baseURL, '/') . '/login/google/callback';
+    }
+
+    /**
+     * @param array<int, string> $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    private function readEnv(array $keys, $default = null)
+    {
+        foreach ($keys as $key) {
+            $value = env($key, null);
+            if ($value !== null && $value !== false && $value !== '') {
+                return $value;
+            }
+        }
+
+        return $default;
     }
 }

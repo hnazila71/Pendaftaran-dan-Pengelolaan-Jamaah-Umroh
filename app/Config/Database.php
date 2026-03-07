@@ -194,19 +194,92 @@ class Database extends Config
     {
         parent::__construct();
 
-        $this->default['DSN'] = (string) env('database.default.DSN', $this->default['DSN']);
-        $this->default['hostname'] = (string) env('database.default.hostname', $this->default['hostname']);
-        $this->default['username'] = (string) env('database.default.username', $this->default['username']);
-        $this->default['password'] = (string) env('database.default.password', $this->default['password']);
-        $this->default['database'] = (string) env('database.default.database', $this->default['database']);
-        $this->default['DBDriver'] = (string) env('database.default.DBDriver', $this->default['DBDriver']);
-        $this->default['charset'] = (string) env('database.default.charset', $this->default['charset']);
-        $this->default['DBCollat'] = (string) env('database.default.DBCollat', $this->default['DBCollat']);
-        $this->default['schema'] = (string) env('database.default.schema', $this->default['schema']);
-        $this->default['sslmode'] = (string) env('database.default.sslmode', $this->default['sslmode']);
-        $this->default['connect_timeout'] = (string) env('database.default.connect_timeout', $this->default['connect_timeout']);
+        $this->default['DSN'] = (string) $this->readEnv([
+            'database.default.DSN',
+            'database_default_DSN',
+            'DATABASE_DEFAULT_DSN',
+            'DB_DSN',
+        ], $this->default['DSN']);
 
-        $dbDebug = env('database.default.DBDebug', null);
+        $this->default['hostname'] = (string) $this->readEnv([
+            'database.default.hostname',
+            'database_default_hostname',
+            'DATABASE_DEFAULT_HOSTNAME',
+            'DB_HOST',
+        ], $this->default['hostname']);
+
+        $this->default['username'] = (string) $this->readEnv([
+            'database.default.username',
+            'database_default_username',
+            'DATABASE_DEFAULT_USERNAME',
+            'DB_USER',
+            'DB_USERNAME',
+        ], $this->default['username']);
+
+        $this->default['password'] = (string) $this->readEnv([
+            'database.default.password',
+            'database_default_password',
+            'DATABASE_DEFAULT_PASSWORD',
+            'DB_PASS',
+            'DB_PASSWORD',
+        ], $this->default['password']);
+
+        $this->default['database'] = (string) $this->readEnv([
+            'database.default.database',
+            'database_default_database',
+            'DATABASE_DEFAULT_DATABASE',
+            'DB_NAME',
+            'DB_DATABASE',
+        ], $this->default['database']);
+
+        $this->default['DBDriver'] = (string) $this->readEnv([
+            'database.default.DBDriver',
+            'database_default_DBDriver',
+            'DATABASE_DEFAULT_DBDRIVER',
+            'DB_DRIVER',
+        ], $this->default['DBDriver']);
+
+        $this->default['charset'] = (string) $this->readEnv([
+            'database.default.charset',
+            'database_default_charset',
+            'DATABASE_DEFAULT_CHARSET',
+            'DB_CHARSET',
+        ], $this->default['charset']);
+
+        $this->default['DBCollat'] = (string) $this->readEnv([
+            'database.default.DBCollat',
+            'database_default_DBCollat',
+            'DATABASE_DEFAULT_DBCOLLAT',
+            'DB_COLLATE',
+        ], $this->default['DBCollat']);
+
+        $this->default['schema'] = (string) $this->readEnv([
+            'database.default.schema',
+            'database_default_schema',
+            'DATABASE_DEFAULT_SCHEMA',
+            'DB_SCHEMA',
+        ], $this->default['schema']);
+
+        $this->default['sslmode'] = (string) $this->readEnv([
+            'database.default.sslmode',
+            'database_default_sslmode',
+            'DATABASE_DEFAULT_SSLMODE',
+            'DB_SSLMODE',
+        ], $this->default['sslmode']);
+
+        $this->default['connect_timeout'] = (string) $this->readEnv([
+            'database.default.connect_timeout',
+            'database_default_connect_timeout',
+            'DATABASE_DEFAULT_CONNECT_TIMEOUT',
+            'DB_CONNECT_TIMEOUT',
+        ], $this->default['connect_timeout']);
+
+        $dbDebug = $this->readEnv([
+            'database.default.DBDebug',
+            'database_default_DBDebug',
+            'DATABASE_DEFAULT_DBDEBUG',
+            'DB_DEBUG',
+        ], null);
         if ($dbDebug !== null && $dbDebug !== '') {
             $debugValue = filter_var($dbDebug, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             if ($debugValue !== null) {
@@ -216,12 +289,23 @@ class Database extends Config
             $this->default['DBDebug'] = ENVIRONMENT !== 'production';
         }
 
-        $port = env('database.default.port', null);
+        $port = $this->readEnv([
+            'database.default.port',
+            'database_default_port',
+            'DATABASE_DEFAULT_PORT',
+            'DB_PORT',
+        ], null);
         if ($port !== null && $port !== '') {
             $this->default['port'] = (int) $port;
         }
 
-        $databaseUrl = trim((string) (env('DATABASE_URL') ?: env('database.default.url') ?: ''));
+        $databaseUrl = trim((string) $this->readEnv([
+            'DATABASE_URL',
+            'database.default.url',
+            'database_default_url',
+            'DATABASE_DEFAULT_URL',
+            'DB_URL',
+        ], ''));
         if ($databaseUrl !== '') {
             $this->applyDatabaseUrl($databaseUrl);
         }
@@ -241,6 +325,24 @@ class Database extends Config
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
+    }
+
+    /**
+     * @param array<int, string> $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    private function readEnv(array $keys, $default = null)
+    {
+        foreach ($keys as $key) {
+            $value = env($key, null);
+            if ($value !== null && $value !== false && $value !== '') {
+                return $value;
+            }
+        }
+
+        return $default;
     }
 
     private function applyDatabaseUrl(string $databaseUrl): void
