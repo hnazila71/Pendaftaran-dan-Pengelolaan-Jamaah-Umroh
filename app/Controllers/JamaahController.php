@@ -3,17 +3,26 @@
 namespace App\Controllers;
 
 use App\Models\JamaahModel;
-use CodeIgniter\Controller;
 
-class JamaahController extends Controller
+class JamaahController extends AuthenticatedController
 {
     public function addJamaah()
     {
-        return view('add_jamaah'); // Menampilkan form tambah jamaah
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
+        return view('add_jamaah'); 
     }
 
     public function saveJamaah()
     {
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         // Validasi input
         if (!$this->validate([
             'nama_jamaah' => 'required|min_length[3]|max_length[255]',

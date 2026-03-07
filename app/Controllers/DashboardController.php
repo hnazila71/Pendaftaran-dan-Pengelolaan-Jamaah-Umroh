@@ -3,47 +3,124 @@
 namespace App\Controllers;
 
 use App\Models\JamaahModel;
+use App\Models\PembayaranModel;
 use App\Models\ProgramModel;
 use App\Models\TransaksiModel;
-use CodeIgniter\Controller;
 
-class DashboardController extends Controller
+class DashboardController extends AuthenticatedController
 {
     protected $jamaahModel;
     protected $programModel;
     protected $transaksiModel;
+    protected $pembayaranModel;
 
     public function __construct()
     {
-        helper('NumberHelper'); // Pastikan helper dimuat
+        helper('NumberHelper');
 
         $this->jamaahModel = new JamaahModel();
         $this->programModel = new ProgramModel();
         $this->transaksiModel = new TransaksiModel();
+        $this->pembayaranModel = new PembayaranModel();
     }
 
     public function index()
     {
+        $redirect = $this->requireLogin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         $data['programs'] = $this->programModel->findAll();
+        $data['is_admin'] = $this->isAdmin();
+        $data['is_super_admin'] = $this->isSuperAdmin();
+        $data['admin_role'] = (string) session()->get('admin_role');
+        $data['admin_nama'] = (string) session()->get('admin_nama');
+
         return view('dashboard', $data);
     }
 
     public function viewProgramTransactions($id_program)
     {
+        $redirect = $this->requireLogin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         $program = $this->programModel->find($id_program);
-        if (!$program) {
+
+        if (! $program) {
             return redirect()->to('/dashboard')->with('error', 'Program tidak ditemukan.');
         }
 
         $transaksi = $this->transaksiModel
-            ->select('transaksi.*, jamaah.nama_jamaah')
-            ->where('id_program', $id_program)
+            ->select('transaksi.*, jamaah.nama_jamaah, COALESCE(SUM(transaksi_pembayaran.nominal), 0) as total_bayar_dinamis')
+            ->where('transaksi.id_program', $id_program)
             ->join('jamaah', 'transaksi.id_jamaah = jamaah.id')
+            ->join('transaksi_pembayaran', 'transaksi_pembayaran.transaksi_id = transaksi.id', 'left')
+            ->groupBy('transaksi.id, jamaah.nama_jamaah')
+            ->orderBy('transaksi.id', 'ASC')
             ->findAll();
+
+        $riwayatByTransaksi = [];
+        $transaksiIds = array_column($transaksi, 'id');
+
+        if (! empty($transaksiIds)) {
+            $pembayaranRows = $this->pembayaranModel
+                ->whereIn('transaksi_id', $transaksiIds)
+                ->orderBy('dibayar_pada', 'ASC')
+                ->findAll();
+
+            foreach ($pembayaranRows as $row) {
+                $transaksiId = (int) $row['transaksi_id'];
+                $riwayatByTransaksi[$transaksiId][] = [
+                    'nominal' => (float) ($row['nominal'] ?? 0),
+                    'keterangan' => $row['keterangan'] ?? null,
+                    'dibayar_pada' => $row['dibayar_pada'] ?? null,
+                ];
+            }
+        }
+
+        foreach ($transaksi as &$item) {
+            $riwayatDinamis = $riwayatByTransaksi[(int) $item['id']] ?? [];
+            $riwayatLegacy = [];
+
+            foreach (['dp1', 'dp2', 'dp3'] as $dpField) {
+                $nominal = (float) ($item[$dpField] ?? 0);
+
+                if ($nominal <= 0) {
+                    continue;
+                }
+
+                $timeField = $dpField . '_time_edit';
+                $riwayatLegacy[] = [
+                    'nominal' => $nominal,
+                    'keterangan' => strtoupper($dpField) . ' (legacy)',
+                    'dibayar_pada' => $item[$timeField] ?? null,
+                ];
+            }
+
+            $riwayatMerged = array_merge($riwayatDinamis, $riwayatLegacy);
+            usort($riwayatMerged, static function (array $a, array $b): int {
+                $ta = isset($a['dibayar_pada']) && $a['dibayar_pada'] !== null ? strtotime((string) $a['dibayar_pada']) : 0;
+                $tb = isset($b['dibayar_pada']) && $b['dibayar_pada'] !== null ? strtotime((string) $b['dibayar_pada']) : 0;
+                return $ta <=> $tb;
+            });
+
+            $legacyBayar = (float) ($item['dp1'] ?? 0) + (float) ($item['dp2'] ?? 0) + (float) ($item['dp3'] ?? 0);
+            $dinamisBayar = (float) ($item['total_bayar_dinamis'] ?? 0);
+            $totalBayar = $legacyBayar + $dinamisBayar;
+
+            $item['total_bayar'] = $totalBayar;
+            $item['sisa_tagihan'] = max(0, (float) $item['harga'] - $totalBayar);
+            $item['riwayat_pembayaran'] = $riwayatMerged;
+        }
+        unset($item);
 
         $data = [
             'program' => $program,
-            'transaksi' => $transaksi
+            'transaksi' => $transaksi,
+            'is_admin' => $this->isAdmin(),
         ];
 
         return view('program_transactions', $data);
@@ -51,20 +128,34 @@ class DashboardController extends Controller
 
     public function editDP1($id)
     {
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         return $this->editDP($id, 'dp1');
     }
 
     public function editDP2($id)
     {
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         return $this->editDP($id, 'dp2');
     }
 
     public function editDP3($id)
     {
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
         return $this->editDP($id, 'dp3');
     }
 
-    // Fungsi umum untuk menampilkan form edit DP
     private function editDP($id, $dpField)
     {
         $transaksi = $this->transaksiModel
@@ -73,41 +164,44 @@ class DashboardController extends Controller
             ->where('transaksi.id', $id)
             ->first();
 
-        if (!$transaksi) {
+        if (! $transaksi) {
             return redirect()->to('/dashboard')->with('error', 'Transaksi tidak ditemukan.');
         }
 
         $data = [
             'transaksi' => $transaksi,
             'dpField' => $dpField,
-            'fieldLabel' => strtoupper($dpField) // Label seperti DP1, DP2, atau DP3
+            'fieldLabel' => strtoupper($dpField),
         ];
 
         return view('edit_dp', $data);
     }
 
-    // Fungsi untuk memperbarui nilai DP dan waktu edit
     public function updateDP($id)
     {
-        $dpField = $this->request->getPost('dpField');
-        $dpValue = str_replace(',', '', $this->request->getPost('dpValue')); // Hilangkan koma sebelum menyimpan
+        $redirect = $this->requireAdmin();
+        if ($redirect !== null) {
+            return $redirect;
+        }
 
-        // Ambil data transaksi berdasarkan ID
+        $dpField = $this->request->getPost('dpField');
+        $dpValue = str_replace(',', '', (string) $this->request->getPost('dpValue'));
+
         $transaksi = $this->transaksiModel->find($id);
-        if (!$transaksi) {
+
+        if (! $transaksi) {
             return redirect()->back()->with('error', 'Transaksi tidak ditemukan.');
         }
 
-        // Tentukan nama kolom waktu edit untuk DP yang diubah
         $timeEditField = $dpField . '_time_edit';
 
-        // Siapkan data untuk update
         $updateData = [
             $dpField => $dpValue,
-            $timeEditField => date('Y-m-d H:i:s')
+            $timeEditField => date('Y-m-d H:i:s'),
         ];
 
         $this->transaksiModel->update($id, $updateData);
+
         return redirect()->to('/dashboard/program/' . $transaksi['id_program'])
             ->with('success', ucfirst($dpField) . ' berhasil diperbarui.');
     }

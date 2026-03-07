@@ -1,153 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Razek Pekajangan</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-        }
-
-        h1 {
-            color: #333;
-            margin: 0;
-        }
-
-        .logout-button {
-            font-size: 1em;
-            color: #fff;
-            background-color: #e74c3c;
-            padding: 8px 16px;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .logout-button:hover {
-            background-color: #c0392b;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .actions a {
-            padding: 10px 20px;
-            font-size: 1em;
-            color: #fff;
-            background-color: #007BFF;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .actions a:hover {
-            background-color: #0056b3;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .program-list {
-            list-style-type: none;
-            padding: 0;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .program-list li {
-            background-color: #ffffff;
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
-        }
-
-        .program-list li:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .program-list a {
-            text-decoration: none;
-            color: #007BFF;
-            font-weight: bold;
-            margin-top: 10px;
-            display: inline-block;
-            transition: color 0.2s ease;
-        }
-
-        .program-list a:hover {
-            color: #0056b3;
-        }
-
-        .program-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .program-date {
-            color: #555;
-            font-size: 0.9em;
-        }
-    </style>
+    <title>Dashboard | Razek Pekajangan</title>
+    <link rel="stylesheet" href="<?= base_url('assets/css/ui.css') ?>">
 </head>
 
 <body>
-    <div class="header">
-        <h1>Razek Pekajangan</h1>
-        <a href="<?= site_url('logout') ?>" class="logout-button">Logout</a>
-    </div>
+    <?php
+    $isAdmin = (bool) ($is_admin ?? false);
+    $isSuperAdmin = (bool) ($is_super_admin ?? false);
+    $adminRole = strtoupper((string) ($admin_role ?? 'viewer'));
+    $adminName = (string) ($admin_nama ?? session()->get('admin_nama') ?? '');
+    $roleLabel = $isSuperAdmin ? 'SUPER ADMIN' : $adminRole;
+    ?>
+    <main class="page-shell fade-in">
+        <header class="topbar">
+            <div>
+                <span class="brand-chip"><span class="brand-dot"></span>Razek Pekajangan</span>
+                <h1>Dashboard Jamaah Umroh</h1>
+                <p>Halo <?= esc($adminName) ?>. Role kamu: <strong><?= esc($roleLabel) ?></strong>.</p>
+            </div>
+            <a href="<?= site_url('logout') ?>" class="btn btn-danger">Logout</a>
+        </header>
 
-    <div class="actions">
-        <a href="<?= site_url('dashboard/add-jamaah') ?>">Tambah Jamaah</a>
-        <a href="<?= site_url('dashboard/add-program') ?>">Tambah Program</a>
-        <a href="<?= site_url('dashboard/add-transaksi') ?>">Tambah Transaksi</a>
-        <a href="<?= site_url('keuangan') ?>" class="keuangan-button">Lihat Keuangan</a>
-    </div>
-
-    <h2>Daftar Program</h2>
-    <ul class="program-list">
-        <?php if (!empty($programs)): ?>
-            <?php foreach ($programs as $program): ?>
-                <li>
-                    <div class="program-title"><?= esc($program['nama_program']) ?></div>
-                    <div class="program-date"><?= esc($program['tanggal_program']) ?></div>
-                    <a href="<?= site_url('dashboard/program/' . $program['id']) ?>">Lihat Detail dan Transaksi</a>
-                </li>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p style="text-align: center;">Tidak ada program yang tersedia saat ini.</p>
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="flash success"><?= esc(session()->getFlashdata('success')) ?></div>
         <?php endif; ?>
-    </ul>
+
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="flash error"><?= esc(session()->getFlashdata('error')) ?></div>
+        <?php endif; ?>
+
+        <section class="actions-grid fade-in-slow">
+            <a href="<?= site_url('keuangan') ?>" class="btn btn-secondary">Lihat Keuangan</a>
+            <?php if ($isAdmin): ?>
+                <a href="<?= site_url('dashboard/add-jamaah') ?>" class="btn btn-primary">Tambah Jamaah</a>
+                <a href="<?= site_url('dashboard/add-program') ?>" class="btn btn-accent">Tambah Program</a>
+                <a href="<?= site_url('dashboard/add-transaksi') ?>" class="btn btn-primary">Tambah Transaksi</a>
+                <?php if ($isSuperAdmin): ?>
+                    <a href="<?= site_url('dashboard/users') ?>" class="btn btn-accent">Persetujuan User</a>
+                <?php endif; ?>
+            <?php endif; ?>
+        </section>
+
+        <?php if (! $isAdmin): ?>
+            <div class="flash" style="background: rgba(22, 102, 120, 0.08); border-color: rgba(22, 102, 120, 0.22); color: #1e4151;">
+                Akun viewer bersifat baca-saja. Tambah/edit data hanya bisa dilakukan oleh admin.
+            </div>
+        <?php endif; ?>
+
+        <section class="panel fade-in-slow">
+            <div class="stack">
+                <h2>Daftar Program</h2>
+                <p>Harga modal dan harga jual ditentukan di program, lalu transaksi jamaah otomatis mengikuti nilai ini.</p>
+
+                <?php if (! empty($programs)): ?>
+                    <div class="program-grid">
+                        <?php foreach ($programs as $program): ?>
+                            <article class="program-card">
+                                <h3><?= esc($program['nama_program']) ?></h3>
+                                <p class="program-date">Tanggal: <?= esc($program['tanggal_program']) ?></p>
+                                <p><strong>Harga Jual:</strong> Rp <?= number_format((float) ($program['harga_jual'] ?? 0), 0, ',', '.') ?></p>
+                                <p><strong>Harga Modal:</strong> Rp <?= number_format((float) ($program['harga_modal'] ?? 0), 0, ',', '.') ?></p>
+                                <a class="btn btn-primary" style="margin-top: 10px;" href="<?= site_url('dashboard/program/' . $program['id']) ?>">Lihat Detail</a>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p>Belum ada program. Tambahkan program pertama untuk mulai mencatat transaksi jamaah.</p>
+                <?php endif; ?>
+            </div>
+        </section>
+    </main>
 </body>
 
 </html>

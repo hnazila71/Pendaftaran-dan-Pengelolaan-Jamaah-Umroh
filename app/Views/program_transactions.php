@@ -1,164 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Program dan Transaksi</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f7fa;
-        }
-
-        .header {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        .transactions {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-        }
-
-        .transactions table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .transactions th,
-        .transactions td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .transactions th {
-            background-color: #007BFF;
-            color: white;
-            text-transform: uppercase;
-        }
-
-        .edit-button {
-            padding: 5px 10px;
-            margin-top: 5px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            text-decoration: none;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .edit-button:hover {
-            background-color: #218838;
-        }
-
-        .success-message {
-            color: #28a745;
-            margin-bottom: 15px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: #007BFF;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/ui.css') ?>">
 </head>
 
 <body>
-    <div class="header">
-        <h1>Detail Program</h1>
-        <p><strong>Nama Program:</strong> <?= esc($program['nama_program']) ?></p>
-        <p><strong>Tanggal Program:</strong> <?= esc($program['tanggal_program']) ?></p>
-        <a href="<?= site_url('dashboard') ?>" class="back-link">Kembali ke Dashboard</a>
-    </div>
+    <?php $isAdmin = (bool) ($is_admin ?? false); ?>
+    <main class="page-shell fade-in">
+        <header class="topbar">
+            <div>
+                <span class="brand-chip"><span class="brand-dot"></span>Detail Program</span>
+                <h1><?= esc($program['nama_program']) ?></h1>
+                <p>Tanggal Program: <?= esc($program['tanggal_program']) ?></p>
+                <p>Harga Jual: <strong>Rp <?= number_format((float) ($program['harga_jual'] ?? 0), 0, ',', '.') ?></strong> | Harga Modal: <strong>Rp <?= number_format((float) ($program['harga_modal'] ?? 0), 0, ',', '.') ?></strong></p>
+            </div>
+            <a href="<?= site_url('dashboard') ?>" class="btn btn-secondary">Kembali ke Dashboard</a>
+        </header>
 
-    <?php if (session()->getFlashdata('success')): ?>
-        <p class="success-message"><?= session()->getFlashdata('success') ?></p>
-    <?php endif; ?>
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="flash success"><?= esc(session()->getFlashdata('success')) ?></div>
+        <?php endif; ?>
 
-    <div class="transactions">
-        <h2>Daftar Transaksi untuk Program Ini</h2>
-        <?php if (!empty($transaksi)): ?>
-            <div class="table-responsive">
-                <table>
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="flash error"><?= esc(session()->getFlashdata('error')) ?></div>
+        <?php endif; ?>
+
+        <section class="table-shell fade-in-slow">
+            <h2 style="margin-bottom: 12px;">Daftar Transaksi Program</h2>
+
+            <?php if (! empty($transaksi)): ?>
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>Nama Jamaah</th>
-                            <th>Harga</th>
+                            <th>Harga Jual</th>
                             <th>Harga Modal</th>
-                            <th>DP 1</th>
-                            <th>Waktu Edit DP 1</th>
-                            <th>DP 2</th>
-                            <th>Waktu Edit DP 2</th>
-                            <th>DP 3</th>
-                            <th>Waktu Edit DP 3</th>
-                            <th>Total Pembayaran</th>
-                            <th>Kekurangan</th>
+                            <th>Total Bayar</th>
+                            <th>Sisa Tagihan</th>
+                            <th>Riwayat Pembayaran</th>
+                            <th><?= $isAdmin ? 'Tambah Pembayaran' : 'Akses' ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                        $totalKekurangan = 0;
-                        foreach ($transaksi as $t): 
-                            $totalPembayaran = $t['dp1'] + $t['dp2'] + $t['dp3'];
-                            $totalKekurangan += $t['kekurangan'];
+                        <?php
+                        $totalSisa = 0;
+                        foreach ($transaksi as $t):
+                            $totalSisa += (float) ($t['sisa_tagihan'] ?? 0);
                         ?>
                             <tr>
                                 <td><?= esc($t['nama_jamaah']) ?></td>
-                                <td> <?= number_format($t['harga'], 0, ',', '.') ?></td>
-                                <td> <?= number_format($t['harga_modal'], 0, ',', '.') ?></td>
+                                <td class="numeric">Rp <?= number_format((float) $t['harga'], 0, ',', '.') ?></td>
+                                <td class="numeric">Rp <?= number_format((float) $t['harga_modal'], 0, ',', '.') ?></td>
+                                <td class="numeric">Rp <?= number_format((float) ($t['total_bayar'] ?? 0), 0, ',', '.') ?></td>
+                                <td class="numeric">Rp <?= number_format((float) ($t['sisa_tagihan'] ?? 0), 0, ',', '.') ?></td>
                                 <td>
-                                     <?= number_format($t['dp1'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp1/' . $t['id']) ?>" class="edit-button">Edit </a>
+                                    <?php if (! empty($t['riwayat_pembayaran'])): ?>
+                                        <div class="payment-history">
+                                            <?php foreach ($t['riwayat_pembayaran'] as $history): ?>
+                                                <div class="payment-item">
+                                                    <div class="payment-amount">Rp <?= number_format((float) ($history['nominal'] ?? 0), 0, ',', '.') ?></div>
+                                                    <div class="payment-meta">
+                                                        <?php if (! empty($history['dibayar_pada'])): ?>
+                                                            <?= esc(date('d M Y H:i', strtotime((string) $history['dibayar_pada']))) ?>
+                                                        <?php else: ?>
+                                                            Waktu tidak tersedia
+                                                        <?php endif; ?>
+                                                        <?php if (! empty($history['keterangan'])): ?>
+                                                            - <?= esc((string) $history['keterangan']) ?>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="payment-empty">Belum ada pembayaran</span>
+                                    <?php endif; ?>
                                 </td>
-                                <td><?= esc($t['dp1_time_edit'] ?? '-') ?></td>
                                 <td>
-                                     <?= number_format($t['dp2'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp2/' . $t['id']) ?>" class="edit-button">Edit </a>
+                                    <?php if ($isAdmin): ?>
+                                        <form action="<?= site_url('dashboard/transaksi/' . $t['id'] . '/pembayaran') ?>" method="post" class="form-grid" onsubmit="removeCommas(this)">
+                                            <?= csrf_field() ?>
+                                            <input class="money" type="text" name="nominal" value="0" oninput="formatNumber(this)" required>
+                                            <input type="text" name="keterangan" placeholder="Catatan (opsional)">
+                                            <button type="submit" class="btn btn-accent">Simpan Bayar</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted">Viewer tidak bisa menambah pembayaran.</span>
+                                    <?php endif; ?>
                                 </td>
-                                <td><?= esc($t['dp2_time_edit'] ?? '-') ?></td>
-                                <td>
-                                     <?= number_format($t['dp3'], 0, ',', '.') ?><br>
-                                    <a href="<?= site_url('dashboard/edit-dp3/' . $t['id']) ?>" class="edit-button">Edit </a>
-                                </td>
-                                <td><?= esc($t['dp3_time_edit'] ?? '-') ?></td>
-                                <td> <?= number_format($totalPembayaran, 0, ',', '.') ?></td>
-                                <td> <?= number_format($t['kekurangan'], 0, ',', '.') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
-            <p><strong>Total Kekurangan: Rp <?= number_format($totalKekurangan, 0, ',', '.') ?></strong></p>
-        <?php else: ?>
-            <p>Tidak ada transaksi untuk program ini.</p>
-        <?php endif; ?>
-    </div>
+
+                <p class="table-note">Total Sisa Tagihan Program: Rp <?= number_format($totalSisa, 0, ',', '.') ?></p>
+            <?php else: ?>
+                <p>Belum ada transaksi untuk program ini.</p>
+            <?php endif; ?>
+        </section>
+    </main>
+
+    <script>
+        function formatNumber(input) {
+            let value = input.value.replace(/,/g, '').trim();
+
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+
+            const numeric = Number(value);
+            input.value = Number.isFinite(numeric) ? numeric.toLocaleString('en-US') : input.value;
+        }
+
+        function removeCommas(form) {
+            const nominal = form.querySelector('input[name="nominal"]');
+            nominal.value = nominal.value.replace(/,/g, '');
+        }
+    </script>
 </body>
 
 </html>

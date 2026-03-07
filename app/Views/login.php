@@ -1,47 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Login | Razek Pekajangan</title>
+    <link rel="stylesheet" href="<?= base_url('assets/css/ui.css') ?>">
 </head>
 
 <body>
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title text-center">Login</h3>
-                        <?php if (session()->getFlashdata('msg')): ?>
-                            <div class="alert alert-danger">
-                                <?= session()->getFlashdata('msg') ?>
-                            </div>
-                        <?php endif; ?>
-                        <form action="<?= base_url('/login') ?>" method="post">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Username</label> <!-- Change label -->
-                                <input type="text" class="form-control" id="email" name="email" required> <!-- Change input type to text -->
-                            </div>
+    <main class="auth-shell fade-in">
+        <section class="auth-card">
+            <span class="brand-chip"><span class="brand-dot"></span>Razek Pekajangan</span>
+            <h1 class="page-title">Masuk Admin</h1>
+            <p class="page-subtitle">Gunakan akun admin untuk mengelola jamaah umroh dan transaksi pembayaran.</p>
 
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Login</button>
-                            </div>
-                        </form>
-                        <p class="text-center mt-3">Not a member? <a href="<?= base_url('/register') ?>">Register here</a></p>
-                    </div>
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="flash success"><?= esc(session()->getFlashdata('success')) ?></div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('msg')): ?>
+                <div class="flash error"><?= esc(session()->getFlashdata('msg')) ?></div>
+            <?php endif; ?>
+
+            <form action="<?= base_url('/login') ?>" method="post" class="form-grid">
+                <?= csrf_field() ?>
+
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required value="<?= esc(old('username')) ?>" placeholder="Masukkan username">
                 </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Masukkan password">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <div class="btn-row" style="margin-top: 10px;">
+                <a class="btn btn-secondary" href="<?= site_url('login/google') ?>" style="width: 100%;">Login with Google</a>
             </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+            <p style="margin-top: 14px;">Belum punya akun? <a href="<?= base_url('/register') ?>">Register di sini</a></p>
+        </section>
+    </main>
 </body>
 
 </html>

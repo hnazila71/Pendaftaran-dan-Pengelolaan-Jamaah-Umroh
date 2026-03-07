@@ -8,5 +8,5 @@ class ProgramModel extends Model
 {
     protected $table = 'program';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['nama_program', 'tanggal_program'];
+    protected $allowedFields = ['nama_program', 'tanggal_program', 'harga_modal', 'harga_jual'];
 }
