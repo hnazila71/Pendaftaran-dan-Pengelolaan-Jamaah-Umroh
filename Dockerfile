@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     libicu-dev \
     libpq-dev \
+    libonig-dev \
     && docker-php-ext-configure intl \
     && docker-php-ext-install -j"$(nproc)" intl mbstring pdo_pgsql pgsql opcache \
     && a2enmod rewrite headers \
