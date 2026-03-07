@@ -44,9 +44,10 @@ class AuthController extends Controller
                 ->first();
             $adminCount = $adminModel->countAll();
         } catch (Throwable $e) {
+            log_message('error', 'Login database error: {message}', ['message' => $e->getMessage()]);
             return redirect()->back()->withInput()->with(
                 'msg',
-                'Koneksi database bermasalah. Cek konfigurasi Neon di .env lalu coba lagi.'
+                'Koneksi database bermasalah. Pastikan env `DATABASE_URL` di Render valid dan schema Neon sudah di-import.'
             );
         }
 
@@ -121,7 +122,7 @@ class AuthController extends Controller
         $redirectUri = trim((string) env('google.redirectUri'));
 
         if ($clientId === '' || $redirectUri === '') {
-            return redirect()->to('/login')->with('msg', 'Google Login belum dikonfigurasi di file .env.');
+            return redirect()->to('/login')->with('msg', 'Google Login belum dikonfigurasi di Environment Variables (Render).');
         }
 
         try {
