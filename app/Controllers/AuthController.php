@@ -126,14 +126,14 @@ class AuthController extends Controller
     public function loginGoogle()
     {
         $clientId = trim((string) $this->readEnv([
+            'GOOGLE_CLIENT_ID',
             'google.clientId',
             'google_clientId',
-            'GOOGLE_CLIENT_ID',
         ], ''));
         $clientSecret = trim((string) $this->readEnv([
+            'GOOGLE_CLIENT_SECRET',
             'google.clientSecret',
             'google_clientSecret',
-            'GOOGLE_CLIENT_SECRET',
         ], ''));
         $redirectUri = $this->resolveGoogleRedirectUri();
 
@@ -359,14 +359,14 @@ class AuthController extends Controller
     private function exchangeGoogleCode(string $code): ?array
     {
         $clientId = trim((string) $this->readEnv([
+            'GOOGLE_CLIENT_ID',
             'google.clientId',
             'google_clientId',
-            'GOOGLE_CLIENT_ID',
         ], ''));
         $clientSecret = trim((string) $this->readEnv([
+            'GOOGLE_CLIENT_SECRET',
             'google.clientSecret',
             'google_clientSecret',
-            'GOOGLE_CLIENT_SECRET',
         ], ''));
         $redirectUri = $this->resolveGoogleRedirectUri();
 
@@ -463,9 +463,9 @@ class AuthController extends Controller
     private function resolveGoogleRedirectUri(): string
     {
         $redirectUri = trim((string) $this->readEnv([
+            'GOOGLE_REDIRECT_URI',
             'google.redirectUri',
             'google_redirectUri',
-            'GOOGLE_REDIRECT_URI',
         ], ''));
 
         if ($redirectUri !== '') {
