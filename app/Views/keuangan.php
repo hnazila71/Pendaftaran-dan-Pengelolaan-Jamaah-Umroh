@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keuangan</title>
-    <link rel="icon" type="image/png" href="/razek.png?v=2">
-    <link rel="shortcut icon" href="/razek.png?v=2">
+    <link rel="icon" type="image/png" href="/razek.png?v=3">
+    <link rel="shortcut icon" href="/favicon.ico?v=3">
+    <link rel="apple-touch-icon" href="/razek.png?v=3">
     <style>
         body {
             font-family: Arial, sans-serif;

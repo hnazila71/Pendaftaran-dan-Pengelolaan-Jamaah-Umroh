@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Transaksi</title>
-    <link rel="icon" type="image/png" href="/razek.png?v=2">
-    <link rel="shortcut icon" href="/razek.png?v=2">
+    <link rel="icon" type="image/png" href="/razek.png?v=3">
+    <link rel="shortcut icon" href="/favicon.ico?v=3">
+    <link rel="apple-touch-icon" href="/razek.png?v=3">
     <link rel="stylesheet" href="<?= base_url('assets/css/ui.css') ?>">
 </head>
 

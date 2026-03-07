@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <title><?= lang('Errors.pageNotFound') ?></title>
-    <link rel="icon" type="image/png" href="/razek.png">
+    <link rel="icon" type="image/png" href="/razek.png?v=3">
+    <link rel="shortcut icon" href="/favicon.ico?v=3">
+    <link rel="apple-touch-icon" href="/razek.png?v=3">
 
     <style>
         div.logo {
