@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'http://localhost:8080/';
+    public string $baseURL = '';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
@@ -40,7 +40,7 @@ class App extends BaseConfig
      * something else. If you have configured your web server to remove this file
      * from your site URIs, set this variable to an empty string.
      */
-    public string $indexPage = 'index.php';
+    public string $indexPage = '';
 
     /**
      * --------------------------------------------------------------------------
@@ -200,4 +200,32 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $baseURL = trim((string) (
+            env('app.baseURL')
+            ?: env('app_baseURL')
+            ?: env('APP_BASE_URL')
+            ?: env('RENDER_EXTERNAL_URL')
+            ?: ''
+        ));
+
+        if ($baseURL !== '') {
+            $this->baseURL = rtrim($baseURL, '/') . '/';
+        }
+
+        $indexPage = (string) (env('app.indexPage') ?: env('app_indexPage') ?: '');
+        $this->indexPage = trim($indexPage);
+
+        $forceHttps = env('app.forceGlobalSecureRequests', env('app_forceGlobalSecureRequests', null));
+        if ($forceHttps !== null && $forceHttps !== '') {
+            $parsed = filter_var($forceHttps, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($parsed !== null) {
+                $this->forceGlobalSecureRequests = $parsed;
+            }
+        }
+    }
 }
