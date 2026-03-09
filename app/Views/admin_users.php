@@ -112,7 +112,7 @@
                                 <td>
                                     <?= esc((string) ($user['nama'] ?? '-')) ?>
                                     <?php if ((int) ($user['id'] ?? 0) === (int) ($current_admin_id ?? 0)): ?>
-                                        <span class="text-muted">(Kamu)</span>
+                                        <span class="text-muted">(Anda)</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><?= esc((string) ($user['email'] ?? '-')) ?></td>
